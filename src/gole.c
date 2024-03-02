@@ -24,7 +24,7 @@ void gole_run(ui32 width, ui32 height, ui32 scale)
 	SDL_Init(SDL_INIT_VIDEO);
 
 	bool quit = false;
-	bool pause = true;
+	bool paused = true;
 
 	// need two so that it can apply the rule while reading [cells] and modifying [pixels]
 	ui32 *cells = calloc(width * height, sizeof(ui32));
@@ -44,6 +44,7 @@ void gole_run(ui32 width, ui32 height, ui32 scale)
 
 	SDL_UpdateTexture(screen, NULL, pixels, width * scale);
 
+
 	ui64 ticks = 25;
 	ui64 delta_time = 1000 / ticks;
 
@@ -51,7 +52,6 @@ void gole_run(ui32 width, ui32 height, ui32 scale)
 	ui64 newTime;
 	ui64 accumulator = 0;
 
-	// loop
 	while (!quit) {
 		// update
 
@@ -63,9 +63,7 @@ void gole_run(ui32 width, ui32 height, ui32 scale)
 				case SDL_QUIT:
 					quit = true;
 				case SDL_KEYDOWN:
-					if (event.key.keysym.scancode == SDL_SCANCODE_ESCAPE)
-						quit = true;
-					else if (event.key.keysym.scancode == SDL_SCANCODE_UP) {
+					if (event.key.keysym.scancode == SDL_SCANCODE_UP) {
 						ticks += 1;
 						delta_time = 1000 / ticks;
 					}
@@ -90,7 +88,9 @@ void gole_run(ui32 width, ui32 height, ui32 scale)
 						modified = true;
 					}
 					else if (event.key.keysym.scancode == SDL_SCANCODE_SPACE)
-						pause = !pause;
+						paused = !paused;
+					else if (event.key.keysym.scancode == SDL_SCANCODE_ESCAPE)
+						quit = true;
 
 					break;
 				case SDL_MOUSEBUTTONDOWN:
@@ -126,10 +126,17 @@ void gole_run(ui32 width, ui32 height, ui32 scale)
 		while (accumulator >= delta_time) {
 			accumulator -= delta_time;
 
-			if (pause)
+			printf("\n");
+			printf("TICKS PER SECOND: %lu\n", ticks);
+			if (paused) {
+				printf("PAUSED\n");
 				continue;
+			}
+			else
+				printf("RUNNING\n");
 
 			// tick
+
 			memcpy(cells, pixels, width * height * sizeof(ui32));
 
 			modified = true;
@@ -139,14 +146,17 @@ void gole_run(ui32 width, ui32 height, ui32 scale)
 				i32 y = (int)(i / width);
 				i32 x = i - y * width;
 
+				// if it's on the screen border then it can't get the 3x3 region around the cell
 				if (x <= 0 || y <= 0 || x == width - 1 || y == height - 1) {
 					pixels[i] = BLACK;
 					continue;
 				}
 
 				ui32 live_neighbours = 0;
+				// loop through the cells in the 3x3 region around the cell at [i]
 				for (ui32 j = x - 1; j <= x + 1; ++j) {
 					for (ui32 k = y - 1; k <= y + 1; ++k) {
+						// center cell in 3x3 region
 						if (j == x && k == y)
 							continue;
 
@@ -155,11 +165,13 @@ void gole_run(ui32 width, ui32 height, ui32 scale)
 					}
 				}
 
+				// game of life rules
 				if (live_neighbours < 2 || live_neighbours > 3)
 					pixels[i] = BLACK;
 				else if (live_neighbours == 3)
 					pixels[i] = WHITE;
 			}
+
 		}
 
 		// render
