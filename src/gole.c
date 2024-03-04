@@ -17,32 +17,33 @@
 
 void gole_run(ui32 width, ui32 height, ui32 scale)
 {
-	srand(time(NULL));
-
 	// init
 
-	SDL_Init(SDL_INIT_VIDEO);
+	srand(time(NULL));
+
+	const ui32 size = width * height;
 
 	bool quit = false;
 	bool paused = true;
 
 	// need two so that it can apply the rule while reading [cells] and modifying [pixels]
-	ui32 *cells = calloc(width * height, sizeof(ui32));
-	ui32 *pixels = calloc(width * height, sizeof(ui32));
+	ui32 *cells = calloc(size, sizeof(ui32));
+	ui32 *pixels = calloc(size, sizeof(ui32));
 
 	bool modified = false;
+
+	SDL_Init(SDL_INIT_VIDEO);
 
 	SDL_Window *window = NULL;
 	SDL_Renderer *renderer = NULL;
 
 	SDL_CreateWindowAndRenderer(width * scale, height * scale, SDL_WINDOW_ALLOW_HIGHDPI, &window, &renderer);
 	SDL_RenderSetScale(renderer, scale, scale);
-
 	SDL_SetWindowTitle(window, TITLE);
 
-	SDL_Texture *screen = SDL_CreateTexture(renderer, SDL_PIXELFORMAT_ARGB8888, SDL_TEXTUREACCESS_STREAMING, width, height);
+	SDL_GL_SetSwapInterval(1);
 
-	SDL_UpdateTexture(screen, NULL, pixels, width * scale);
+	SDL_Texture *screen = SDL_CreateTexture(renderer, SDL_PIXELFORMAT_ARGB8888, SDL_TEXTUREACCESS_STREAMING, width, height);
 
 
 	ui64 ticks = 25;
@@ -73,17 +74,17 @@ void gole_run(ui32 width, ui32 height, ui32 scale)
 						delta_time = 1000 / ticks;
 					}
 					else if (event.key.keysym.scancode == SDL_SCANCODE_R) {
-						memset(pixels, BLACK, width * height * sizeof(ui32));
+						memset(pixels, BLACK, size * sizeof(ui32));
 
-						for (int i = 0; i < width * height; ++i) {
-							if (rand() % 5 == 0)
+						for (int i = 0; i < size; ++i) {
+							if (rand() % 3 == 0)
 								pixels[i] = WHITE;
 						}
 
 						modified = true;
 					}
 					else if (event.key.keysym.scancode == SDL_SCANCODE_C) {
-						memset(pixels, BLACK, width * height * sizeof(ui32));
+						memset(pixels, BLACK, size * sizeof(ui32));
 
 						modified = true;
 					}
@@ -111,6 +112,7 @@ void gole_run(ui32 width, ui32 height, ui32 scale)
 							pixels[coords] = WHITE;
 						else
 							pixels[coords] = BLACK;
+
 						modified = true;
 					}
 
@@ -137,12 +139,12 @@ void gole_run(ui32 width, ui32 height, ui32 scale)
 
 			// tick
 
-			memcpy(cells, pixels, width * height * sizeof(ui32));
+			memcpy(cells, pixels, size * sizeof(ui32));
 
 			modified = true;
 
 			// apply rule for each cell
-			for (ui32 i = 0; i < width * height; ++i) {
+			for (ui32 i = 0; i < size; ++i) {
 				i32 y = (int)(i / width);
 				i32 x = i - y * width;
 
@@ -171,19 +173,17 @@ void gole_run(ui32 width, ui32 height, ui32 scale)
 				else if (live_neighbours == 3)
 					pixels[i] = WHITE;
 			}
-
 		}
 
 		// render
 
 		if (modified) {
 			modified = false;
-
 			SDL_UpdateTexture(screen, NULL, pixels, width * scale);
 		}
 
-		SDL_RenderCopyEx(renderer, screen, NULL, NULL, 0.0, NULL, 0);
-		SDL_RenderPresent(renderer);
+			SDL_RenderCopyEx(renderer, screen, NULL, NULL, 0.0, NULL, 0);
+			SDL_RenderPresent(renderer);
 	}
 
 	

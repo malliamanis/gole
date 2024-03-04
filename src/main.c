@@ -3,9 +3,9 @@
 
 #include "gole.h"
 
-#define DEFAULT_WIDTH 300
-#define DEFAULT_HEIGHT (DEFAULT_WIDTH * 9 / 16)
 #define DEFAULT_SCALE 4
+#define DEFAULT_HEIGHT (DEFAULT_WIDTH * 9 / 16)
+#define DEFAULT_WIDTH (1280 / DEFAULT_SCALE)
 
 int main(int argc, char **argv)
 {
