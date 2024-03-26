@@ -19,16 +19,6 @@ typedef double f64;
 
 typedef size_t usize;
 
-typedef struct {
-	f32 x;
-	f32 y;
-} vec2;
-
-typedef struct {
-	i32 x;
-	i32 y;
-} vec2i;
-
 void gole_run(ui32 width, ui32 height, ui32 scale);
 
 #endif

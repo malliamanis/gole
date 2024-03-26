@@ -1,5 +1,5 @@
-# GOLE
-Conway's Game of Life written in C using SDL2
+# GOLe
+Conway's Game of Life written in C using SDL2 Texture for rendering
 
 ----
 

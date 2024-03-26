@@ -3,18 +3,28 @@
 
 #include "gole.h"
 
-#define DEFAULT_SCALE 4
-#define DEFAULT_HEIGHT (DEFAULT_WIDTH * 9 / 16)
+#define DEFAULT_SCALE 5
 #define DEFAULT_WIDTH (1280 / DEFAULT_SCALE)
+#define DEFAULT_HEIGHT (DEFAULT_WIDTH * 9 / 16)
 
 int main(int argc, char **argv)
 {
+	int width, height, scale;
+
 	if (argc < 4) {
 		printf("not enough arguments, using default settings\n");
-		gole_run(DEFAULT_WIDTH, DEFAULT_HEIGHT, DEFAULT_SCALE);
+
+		width = DEFAULT_WIDTH;
+		height = DEFAULT_HEIGHT;
+		scale = DEFAULT_SCALE;
 	}
-	else
-		gole_run(atoi(argv[1]), atoi(argv[2]), atoi(argv[3]));
+	else {
+		scale = atoi(argv[3]);
+		width = atoi(argv[1]) / scale;
+		height = atoi(argv[2]) / scale;
+	}
+
+	gole_run(width, height, scale);
 
 	return 0;
 }
