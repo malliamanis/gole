@@ -14,6 +14,6 @@ $ ./build/release/gole
 Click on a pixel to toggle it <br/>
 Press SPACE to pause <br/>
 Press C to clear the screen <br/>
-Press R to fill random pixels
+Press R to fill random pixels <br/>
 Press UP or DOWN keys to increase or decrease the ticks per second
 

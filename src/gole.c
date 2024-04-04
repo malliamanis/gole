@@ -1,7 +1,5 @@
 #include <SDL2/SDL.h>
 
-#include <SDL2/SDL_render.h>
-#include <SDL2/SDL_video.h>
 #include <time.h>
 #include <stdio.h>
 #include <stdlib.h>
@@ -15,20 +13,21 @@
 #define WHITE 0xFFFFFFFF
 #define BLACK 0
 
-void gole_run(ui32 width, ui32 height, ui32 scale)
+void gole_run(uint32_t width, uint32_t height, uint32_t scale)
 {
 	// init
 
 	srand(time(NULL));
 
-	const ui32 size = width * height;
+	const uint32_t size = width * height;
 
 	bool quit = false;
 	bool paused = true;
+	bool status_changed = true;
 
 	// need two so that it can apply the rule while reading [cells] and modifying [pixels]
-	ui32 *cells = calloc(size, sizeof(ui32));
-	ui32 *pixels = calloc(size, sizeof(ui32));
+	uint32_t *cells = calloc(size, sizeof *cells);
+	uint32_t *pixels = calloc(size, sizeof *pixels);
 
 	bool modified = false;
 
@@ -42,7 +41,8 @@ void gole_run(ui32 width, ui32 height, ui32 scale)
 			SDL_WINDOWPOS_CENTERED_DISPLAY(0),
 			width * scale,
 			height * scale,
-			SDL_WINDOW_ALLOW_HIGHDPI);
+			SDL_WINDOW_ALLOW_HIGHDPI
+		);
 
 	SDL_Renderer *renderer = SDL_CreateRenderer(window, -1, SDL_RENDERER_PRESENTVSYNC);
 	// SDL_RenderSetScale(renderer, scale, scale);
@@ -53,15 +53,16 @@ void gole_run(ui32 width, ui32 height, ui32 scale)
 			SDL_PIXELFORMAT_ARGB8888,
 			SDL_TEXTUREACCESS_STREAMING,
 			width,
-			height);
+			height
+		);
 
 
-	ui64 ticks = 25;
-	ui64 delta_time = 1000 / ticks;
+	uint64_t ticks = 25;
+	uint64_t delta_time = 1000 / ticks;
 
-	ui64 current_time = SDL_GetTicks64();
-	ui64 new_time;
-	ui64 accumulator = 0;
+	uint64_t current_time = SDL_GetTicks64();
+	uint64_t new_time;
+	uint64_t accumulator = 0;
 
 	while (!quit) {
 		// update
@@ -74,39 +75,49 @@ void gole_run(ui32 width, ui32 height, ui32 scale)
 				case SDL_QUIT:
 					quit = true;
 				case SDL_KEYDOWN:
-					if (event.key.keysym.scancode == SDL_SCANCODE_UP) {
-						ticks += 1;
-						delta_time = 1000 / ticks;
-					}
-					else if (event.key.keysym.scancode == SDL_SCANCODE_DOWN) {
-						if (ticks > 1)
-							ticks -= 1;
-						delta_time = 1000 / ticks;
-					}
-					else if (event.key.keysym.scancode == SDL_SCANCODE_R) {
-						memset(pixels, BLACK, size * sizeof(ui32));
+					switch (event.key.keysym.scancode) {
+						case SDL_SCANCODE_ESCAPE:
+							quit = true;
+							break;
+						case SDL_SCANCODE_SPACE:
+							status_changed = true;
+							paused = !paused;
+							break;
+						case SDL_SCANCODE_UP:
+							status_changed = true;
 
-						for (int i = 0; i < size; ++i) {
-							if (rand() % 3 == 0)
-								pixels[i] = WHITE;
-						}
+							ticks += 1;
+							delta_time = 1000 / ticks;
+							break;
+						case SDL_SCANCODE_DOWN:
+							status_changed = true;
 
-						modified = true;
+							if (ticks > 1)
+								ticks -= 1;
+							delta_time = 1000 / ticks;
+							break;
+						case SDL_SCANCODE_R:
+							memset(pixels, BLACK, size * sizeof(uint32_t));
+
+							for (int i = 0; i < size; ++i) {
+								if (rand() % 4 == 0)
+									pixels[i] = WHITE;
+							}
+
+							modified = true;
+							break;
+						case SDL_SCANCODE_C:
+							memset(pixels, BLACK, size * sizeof(uint32_t));
+
+							modified = true;
+							break;
+						default:
+							break;
 					}
-					else if (event.key.keysym.scancode == SDL_SCANCODE_C) {
-						memset(pixels, BLACK, size * sizeof(ui32));
-
-						modified = true;
-					}
-					else if (event.key.keysym.scancode == SDL_SCANCODE_SPACE)
-						paused = !paused;
-					else if (event.key.keysym.scancode == SDL_SCANCODE_ESCAPE)
-						quit = true;
-
 					break;
 				case SDL_MOUSEBUTTONDOWN:
 					{
-						i32 x, y;
+						int32_t x, y;
 
 						SDL_GetMouseState(&x, &y);
 
@@ -116,7 +127,7 @@ void gole_run(ui32 width, ui32 height, ui32 scale)
 							break;
 						}
 
-						ui32 coords = (x / scale) + (y / scale) * width;
+						uint32_t coords = (x / scale) + (y / scale) * width;
 
 						if (pixels[coords] == BLACK)
 							pixels[coords] = WHITE;
@@ -138,24 +149,29 @@ void gole_run(ui32 width, ui32 height, ui32 scale)
 		while (accumulator >= delta_time) {
 			accumulator -= delta_time;
 
-			printf("\n");
-			printf("TICKS PER SECOND: %lu\n", ticks);
-			if (paused) {
-				printf("PAUSED\n");
-				continue;
+			if (status_changed) {
+				printf("\n");
+				printf("TICKS PER SECOND: %lu\n", ticks);
+				if (paused)
+					printf("PAUSED\n");
+				else
+					printf("RUNNING\n");
+
+				status_changed = false;
 			}
-			else
-				printf("RUNNING\n");
+
+			if (paused)
+				continue;
 
 			// tick
 
-			memcpy(cells, pixels, size * sizeof(ui32));
+			memcpy(cells, pixels, size * sizeof(uint32_t));
 
 			modified = true;
 
 			// apply rule for each cell
-			for (ui32 y = 0; y < height; ++y) {
-				for (ui32 x = 0; x < width; ++x) {
+			for (uint32_t y = 0; y < height; ++y) {
+				for (uint32_t x = 0; x < width; ++x) {
 					int pixels_index = x + y * width;
 
 					// if it's on the screen border then it can't get the 3x3 region around the cell
@@ -164,10 +180,10 @@ void gole_run(ui32 width, ui32 height, ui32 scale)
 						continue;
 					}
 
-					ui32 live_neighbours = 0;
+					uint32_t live_neighbours = 0;
 					// loop through the cells in the 3x3 region around the cell at [i]
-					for (ui32 k = y - 1; k <= y + 1; ++k) {
-						for (ui32 j = x - 1; j <= x + 1; ++j) {
+					for (uint32_t k = y - 1; k <= y + 1; ++k) {
+						for (uint32_t j = x - 1; j <= x + 1; ++j) {
 							// center cell in 3x3 region
 							if (j == x && k == y)
 								continue;

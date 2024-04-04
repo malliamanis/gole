@@ -3,7 +3,7 @@
 
 #include "gole.h"
 
-#define DEFAULT_SCALE 5
+#define DEFAULT_SCALE 2
 #define DEFAULT_WIDTH (1280 / DEFAULT_SCALE)
 #define DEFAULT_HEIGHT (DEFAULT_WIDTH * 9 / 16)
 
@@ -12,7 +12,12 @@ int main(int argc, char **argv)
 	int width, height, scale;
 
 	if (argc < 4) {
-		printf("not enough arguments, using default settings\n");
+		printf(
+			"not enough arguments, using width: %dpx | height: %dpx | pxwidth: %d\n",
+			DEFAULT_WIDTH,
+			DEFAULT_HEIGHT,
+			DEFAULT_SCALE
+		);
 
 		width = DEFAULT_WIDTH;
 		height = DEFAULT_HEIGHT;
