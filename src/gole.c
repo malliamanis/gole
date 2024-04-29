@@ -68,7 +68,7 @@ void gole_run(uint32_t width, uint32_t height, uint32_t scale)
 		// update
 
 		SDL_Event event;
-		while(SDL_PollEvent(&event))
+		while (SDL_PollEvent(&event))
 		{
 			switch(event.type)
 			{
@@ -150,12 +150,14 @@ void gole_run(uint32_t width, uint32_t height, uint32_t scale)
 			accumulator -= delta_time;
 
 			if (status_changed) {
-				printf("\n");
-				printf("TICKS PER SECOND: %lu\n", ticks);
+				printf("\33[2K\r");
 				if (paused)
-					printf("PAUSED\n");
+					printf("PAUSED");
 				else
-					printf("RUNNING\n");
+					printf("RUNNING");
+				printf(" | TICKS PER SECOND: %lu", ticks);
+
+				fflush(stdout);
 
 				status_changed = false;
 			}
@@ -215,6 +217,8 @@ void gole_run(uint32_t width, uint32_t height, uint32_t scale)
 
 	
 	// quit
+
+	printf("\n");
 
 	SDL_DestroyTexture(screen);
 	SDL_DestroyWindow(window);
